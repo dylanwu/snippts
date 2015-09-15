@@ -1,0 +1,37 @@
+#!/bin/bash
+if [ $# -lt 1 ]; then
+    echo "usage: ggd ~/.gg.conf"
+    exit 0;
+fi
+i=1
+conf_file=$1
+touch ${conf_file}
+here=`pwd`
+valid_here=${here//\//\\\/}
+already_exist=`grep "^${here}$" ${conf_file}`
+declare -a godirs
+while true; do
+    [[ "$2"x = "a"x ]] && [[ x"${already_exist}" = x"" ]] && echo ${here} >> ${conf_file}
+    [[ "$2"x = "a"x ]] && break
+
+    [[ "$2"x = "d"x ]] && [[ x"${already_exist}" != x"" ]] && sed -i "/^${valid_here}$/d" ${conf_file}
+    [[ "$2"x = "d"x ]] && break
+
+    while read line; do
+        if [ "$line"x = ""x ]; then
+            continue
+        fi
+        [[ -d $line ]] || continue
+        echo -e "\033[`expr 35 + $i % 3`m" $i: $line
+        godirs[$i]=$line
+        let i=$i+1
+    done < ${conf_file};
+
+    echo -e "\033[0m"
+    echo -n 'where to go? '
+    read -n1 -t30 n
+    echo
+
+    [[ x"${godirs[${n}]}" != x"" ]] && cd ${godirs[${n}]}
+    break
+done
